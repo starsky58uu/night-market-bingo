@@ -7,4 +7,14 @@ import react from '@vitejs/plugin-react'
 export default defineConfig(({ command }) => ({
   plugins: [react()],
   base: command === 'build' ? '/night-market-bingo/' : '/',
+  build: {
+    rollupOptions: {
+      output: {
+        // 所有資產用純 hash 檔名（避免中文檔名在 GitHub Pages URL encode 後 404）
+        assetFileNames: 'assets/[hash][extname]',
+        chunkFileNames: 'assets/[hash].js',
+        entryFileNames: 'assets/[hash].js',
+      },
+    },
+  },
 }))
