@@ -1,0 +1,1999 @@
+/* ========== 夜市麻將記憶賓果 — 全域樣式（白膜 layout 版） ==========
+   依照草稿圖排版，所有素材（背景、攤主、logo、麻將、對話框、按鈕）
+   都用「白膜 + 虛線框 + 標籤」呈現，方便美術後續替換。
+*/
+
+:root {
+  --bg: #f3efe6;          /* 暫定米白底，方便白膜對比 */
+  --ink: #1f1d1a;          /* 主線稿色 */
+  --ink-2: #4a463e;        /* 次要文字 */
+  --ink-3: #8a8478;        /* 提示文字 */
+  --paper: #ffffff;        /* 白膜底 */
+  --dash: #b6afa1;         /* 虛線框 */
+  --accent: #d9534f;       /* 暫定紅（之後美術會換掉） */
+  --accent-2: #e8b339;     /* 暫定金 */
+
+  --font-display: "Noto Serif TC", "PingFang TC", "Microsoft JhengHei", serif;
+  --font-body: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  font-family: var(--font-body);
+  color: var(--ink);
+  background: var(--bg);
+  overflow: hidden;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: inherit;
+}
+
+/* ========== 白膜共用 ==========
+   .mock = 白底 + 虛線框 + 角落小標籤，提示「這裡未來放什麼」
+*/
+.mock {
+  position: relative;
+  background: var(--paper);
+  border: 2px dashed var(--dash);
+  border-radius: 6px;
+}
+.mock__tag {
+  position: absolute;
+  top: -10px;
+  left: 10px;
+  background: var(--ink);
+  color: #fff;
+  font-size: 10px;
+  letter-spacing: 2px;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.mock__caption {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  color: var(--ink-3);
+  letter-spacing: 1px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.mock--bg {
+  /* 整個畫面外層的背景白膜 */
+  position: absolute;
+  inset: 0;
+  background: var(--bg);
+  border: 2px dashed var(--dash);
+  border-radius: 0;
+}
+.mock--bg::before {
+  content: "預留：背景 (BG)";
+  position: absolute;
+  top: 10px;
+  left: 14px;
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--ink-3);
+}
+
+/* ========== APP 容器 ========== */
+.app {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: var(--bg);
+  background-size: cover;
+  background-position: center;
+}
+/* 半透明壓暗層，讓前景內容清楚 */
+.app::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 12, 20, 0.45);
+  pointer-events: none;
+  z-index: 0;
+}
+.app > * { position: relative; z-index: 1; }
+
+/* ===== 共用 ===== */
+.img-btn {
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: transform 0.1s ease, filter 0.1s ease;
+}
+.img-btn img { width: 100%; height: auto; display: block; }
+.img-btn:hover { transform: translateY(-2px); filter: drop-shadow(0 4px 10px rgba(0,0,0,0.4)); }
+.img-btn:active { transform: translateY(1px); }
+
+/* 招牌按鈕尺寸 */
+.title-img-btn { width: 180px; }
+.hud-tutorial-btn { width: 84px; }
+.hud-tutorial-btn img { width: 100%; height: auto; display: block; }
+
+/* 老闆立繪（其他畫面用） */
+.owner-img {
+  height: min(86vh, 760px);
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 24px rgba(0,0,0,0.5));
+}
+
+/* ============================================================
+   01. TITLE 畫面（依草稿左上格）
+   左：Title logo 框、Start/Gallery 按鈕、攤主對話框（小）
+   右：攤主大立繪 + 教學標籤
+   ============================================================ */
+/* Title 畫面：絕對定位佈局，沿用視窗長寬不縮放 */
+.title-screen {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  overflow: hidden;
+}
+
+/* 大 logo：上方置中 */
+.title-logo-img {
+  position: absolute;
+  top: 4vh;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(720px, 60vw);
+  height: auto;
+  filter: drop-shadow(0 6px 20px rgba(0,0,0,0.6));
+  z-index: 3;
+}
+
+/* 老闆：右側站立到底，可點互動 */
+.title-owner {
+  position: absolute;
+  right: 4vw;
+  bottom: 0;
+  height: min(78vh, 720px);
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 24px rgba(0,0,0,0.5));
+  z-index: 2;
+  cursor: pointer;
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+.title-owner:hover {
+  transform: translateY(-4px) scale(1.01);
+  filter: drop-shadow(0 12px 28px rgba(232,179,57,0.4));
+}
+.title-owner:active { transform: translateY(0); }
+
+/* 老闆對話泡泡（點他出現）— 老闆左邊垂直置中 */
+.title-owner-bubble {
+  position: absolute;
+  right: max(32vw, 380px);
+  top: 65%;
+  transform: translateY(-50%);
+  max-width: 280px;
+  padding: 14px 18px;
+  background: #fff8f3;
+  border: 3px solid var(--accent);
+  border-radius: 18px;
+  color: var(--ink);
+  font-size: 16px;
+  line-height: 1.6;
+  letter-spacing: 1px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+  z-index: 4;
+  animation: bubble-pop 0.3s cubic-bezier(.34,1.56,.64,1);
+}
+.title-owner-bubble::after {
+  content: '';
+  position: absolute;
+  right: -16px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0; height: 0;
+  border: 12px solid transparent;
+  border-left-color: var(--accent);
+  border-right: 0;
+}
+@keyframes bubble-pop {
+  from { transform: scale(0.6); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+
+/* 兩個招牌按鈕：左下中央區域並排 */
+.title-buttons {
+  position: absolute;
+  left: 8vw;
+  bottom: 8vh;
+  display: flex;
+  flex-direction: row;
+  gap: 24px;
+  z-index: 4;
+}
+
+/* 右下角教學招牌 */
+.title-tutorial-btn {
+  position: absolute;
+  right: 24px;
+  bottom: 24px;
+  width: 140px;
+  z-index: 5;
+}
+.title-tutorial-btn img { width: 100%; height: auto; display: block; }
+
+/* 左下角小校正鈕（純文字按鈕，弱化） */
+.title-calib-btn {
+  position: absolute;
+  left: 16px;
+  bottom: 16px;
+  padding: 6px 12px;
+  background: rgba(0,0,0,0.5);
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 4px;
+  color: #fff;
+  font-size: 11px;
+  letter-spacing: 2px;
+  cursor: pointer;
+  z-index: 5;
+}
+.title-calib-btn:hover { background: rgba(0,0,0,0.7); }
+
+/* Title 方框 logo（白膜） */
+.title-logo {
+  width: min(360px, 100%);
+  aspect-ratio: 16/7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.title-logo__text {
+  font-family: var(--font-display);
+  font-size: 44px;
+  font-weight: 900;
+  letter-spacing: 4px;
+  color: var(--ink-3);
+}
+
+.btn-mock {
+  position: relative;
+  padding: 14px 20px;
+  background: var(--paper);
+  border: 2px dashed var(--dash);
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--ink-2);
+  text-align: left;
+  transition: background 0.15s ease;
+}
+.btn-mock:hover { background: #f7f4ec; }
+.btn-mock:active { transform: translateY(1px); }
+
+/* Title 畫面的攤主小對話框（嘴邊那個） */
+.title-talk {
+  position: relative;
+  width: 220px;
+  min-height: 70px;
+  margin-top: 8px;
+  margin-left: 40%;
+  background: var(--paper);
+  border: 2px dashed var(--dash);
+  border-radius: 16px;
+  padding: 14px 16px;
+  font-size: 13px;
+  color: var(--ink-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: 1px;
+}
+.title-talk::after {
+  content: "";
+  position: absolute;
+  right: -10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0; height: 0;
+  border: 10px solid transparent;
+  border-left-color: var(--dash);
+  border-right: 0;
+}
+
+/* 模式選擇器（Title 畫面） */
+.mode-selector {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.mode-selector__label {
+  font-size: 11px;
+  letter-spacing: 4px;
+  color: var(--ink-3);
+}
+.mode-selector__buttons {
+  display: flex;
+  gap: 10px;
+}
+.mode-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 12px 8px;
+  background: var(--paper);
+  border: 2px dashed var(--dash);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+.mode-btn:hover { background: #f7f4ec; }
+.mode-btn--active {
+  background: #fff7e8;
+  border-color: var(--accent-2);
+  border-style: solid;
+  box-shadow: 0 4px 0 #c89a1c;
+}
+.mode-btn__icon { font-size: 22px; line-height: 1; }
+.mode-btn__name {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: var(--ink);
+}
+.mode-btn__desc {
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--ink-3);
+}
+
+/* 攤主右側區 */
+.title-right {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: 100%;
+  overflow: hidden;
+}
+/* width = min(理想寬 320px, 視窗高換算的安全寬)
+   aspect 5:7 ⇒ height = width × 1.4，43vh × 1.4 ≈ 60vh，確保視窗矮時也不擠 */
+.owner-mock {
+  width: min(320px, 43vh);
+  aspect-ratio: 5/7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--paper);
+  border: 2px dashed var(--dash);
+  border-radius: 8px;
+}
+.owner-mock svg { width: 70%; height: 90%; }
+
+/* 教學標籤（掛在攤主右下） */
+.tutorial-tag {
+  position: absolute;
+  bottom: 24px;
+  right: 24px;
+  padding: 10px 18px;
+  background: var(--paper);
+  border: 2px dashed var(--dash);
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--ink-2);
+}
+.tutorial-tag:hover { background: #f7f4ec; }
+
+/* ============================================================
+   02. 對話畫面（依草稿右上格）
+   攤主大圖 + 大對話框，水平並排
+   ============================================================ */
+.dialog-screen {
+  position: absolute;
+  inset: 0;
+  padding: 64px;
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 48px;
+  align-items: center;
+  z-index: 3;
+}
+@media (max-width: 820px) {
+  .dialog-screen { grid-template-columns: 1fr; padding: 32px; gap: 24px; }
+}
+.dialog-owner {
+  height: 80%;
+  display: flex;
+  align-items: end;
+  justify-content: center;
+}
+.dialog-owner .owner-mock {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+}
+.dialog-bubble {
+  position: relative;
+  height: 60%;
+  min-height: 200px;
+  background: var(--paper);
+  border: 2px dashed var(--dash);
+  border-radius: 32px;
+  padding: 40px 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16px;
+}
+.dialog-bubble::before {
+  content: "";
+  position: absolute;
+  left: -16px;
+  top: 40%;
+  width: 0; height: 0;
+  border: 14px solid transparent;
+  border-right-color: var(--dash);
+  border-left: 0;
+}
+.dialog-bubble p {
+  font-size: 16px;
+  color: var(--ink-2);
+  line-height: 1.8;
+  letter-spacing: 1px;
+  margin: 0;
+}
+.dialog-next {
+  align-self: end;
+  margin-top: 12px;
+  padding: 8px 18px;
+  background: var(--paper);
+  border: 2px dashed var(--dash);
+  border-radius: 4px;
+  font-size: 13px;
+  letter-spacing: 2px;
+  color: var(--ink-2);
+}
+.dialog-next:hover { background: #f7f4ec; }
+
+/* ============================================================
+   03. 遊戲主畫面（依草稿左下格）
+   上：[攤主小頭+對話] ... [剩 15 次] ... [裝飾]
+   下：洗牌區 / Bingo 區 / 鏡頭區（橫向排列）
+   ============================================================ */
+.game-screen {
+  position: absolute;
+  inset: 0;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 2;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+}
+
+/* 上方資訊列 */
+.game-top {
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 24px;
+}
+
+/* 攤主小頭 + 對話 */
+.mini-owner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.mini-owner__avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: top center;
+  border: 2px solid var(--accent-2);
+  background: #fff;
+  flex-shrink: 0;
+}
+.mini-owner__say {
+  position: relative;
+  background: #fff8f3;
+  border: 2px solid var(--accent);
+  border-radius: 16px;
+  padding: 8px 14px;
+  font-size: 13px;
+  color: var(--ink);
+  max-width: 240px;
+  letter-spacing: 0.5px;
+}
+.mini-owner__say::before {
+  content: "";
+  position: absolute;
+  left: -10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0; height: 0;
+  border: 10px solid transparent;
+  border-right-color: var(--accent);
+  border-left: 0;
+}
+
+/* 剩餘次數 / 完成線數（深色金字） */
+.remain {
+  justify-self: center;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 6px 20px;
+  background: rgba(0,0,0,0.55);
+  border: 1.5px solid var(--accent-2);
+  border-radius: 8px;
+  color: #fff;
+}
+.remain b {
+  color: var(--accent-2);
+  font-size: 30px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+/* 右上麻將桌邊裝飾（白膜） */
+.deco {
+  width: 100px;
+  height: 56px;
+  background: var(--paper);
+  border: 2px dashed var(--dash);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: var(--ink-3);
+  letter-spacing: 1px;
+  text-align: center;
+}
+
+/* 下方三區 */
+.game-row {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1.3fr 1.3fr 180px;
+  gap: 8px;
+  min-height: 0;
+  align-items: stretch;
+}
+@media (max-width: 820px) {
+  .game-row { grid-template-columns: 1fr 1fr; }
+  .game-row .camera-area { grid-column: span 2; }
+}
+
+/* 區塊外殼 — 半透明深色 + 細金邊（讓墨綠氈透出）*/
+.area {
+  position: relative;
+  background: rgba(8, 24, 16, 0.4);
+  border: 1px solid rgba(232,179,57,0.35);
+  border-radius: 8px;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+.area__header {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  background: var(--ink);
+  color: #fff;
+  font-size: 11px;
+  letter-spacing: 3px;
+  padding: 3px 10px;
+  border-radius: 3px;
+  font-weight: 700;
+}
+.area__note {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  color: var(--ink-3);
+  letter-spacing: 1px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* 6×6 棋盤 */
+.grid-6 {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  grid-template-rows: repeat(6, 1fr);
+  gap: 4px;
+  flex: 1;
+  min-height: 0;
+  aspect-ratio: 1 / 1;
+  max-height: 100%;
+  margin: 0 auto;
+  width: 100%;
+  max-width: min(100%, 70vh);
+}
+
+/* 牌（白膜） */
+.tile {
+  background: var(--paper);
+  border: 1.5px solid var(--dash);
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: var(--ink-3);
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+.tile:hover { background: #f4f1e8; transform: translateY(-1px); }
+.tile.empty { background: transparent; border-style: dashed; cursor: default; }
+.tile.empty:hover { transform: none; }
+
+/* Bingo 區的「淡淡背景」效果 */
+.tile.ghost {
+  border-style: dashed;
+  background:
+    repeating-linear-gradient(45deg,
+      rgba(140,130,110,0.06) 0 4px,
+      transparent 4px 8px);
+  color: rgba(74,70,62,0.35);
+}
+.tile.ghost.filled {
+  background: var(--paper);
+  border-style: solid;
+  border-color: var(--ink-2);
+  color: var(--ink-2);
+}
+
+/* 鏡頭區 */
+.camera-area {
+  display: flex;
+  flex-direction: column;
+}
+.camera-area .camera-box {
+  /* 填滿可用高度（鏡頭變長）。video 用 object-fit:cover 填滿、不變形
+     hint/guide 在下方有固定高度，所以這裡 flex:1 不會被內容變化擠到 reflow → 不顫抖 */
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  background: #050507;
+  border: 2px dashed var(--dash);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ============================================================
+   HandTracker 元件樣式
+   ============================================================ */
+.hand-tracker {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.hand-tracker__video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* 鏡像：讓使用者抬左手 = 畫面左邊（鏡子方向） */
+  transform: scaleX(-1);
+  background: #050507;
+}
+.hand-tracker__overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.hand-tracker__badges {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  right: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 11px;
+  pointer-events: none;
+}
+.hand-tracker__status {
+  background: rgba(0,0,0,0.6);
+  color: #fff;
+  padding: 3px 8px;
+  border-radius: 3px;
+  letter-spacing: 2px;
+  font-weight: 700;
+}
+.hand-tracker__gesture {
+  background: var(--accent);
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-weight: 900;
+  letter-spacing: 3px;
+  font-size: 14px;
+  box-shadow: 0 0 12px rgba(217,83,79,0.6);
+  animation: gesture-pop 0.25s ease;
+}
+@keyframes gesture-pop {
+  from { transform: scale(0.7); }
+  to   { transform: scale(1); }
+}
+
+/* 失敗狀態 */
+.hand-tracker--error {
+  background: var(--paper);
+}
+.hand-tracker--error .hand-tracker__error-msg {
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.92);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  gap: 10px;
+  text-align: center;
+}
+.hand-tracker__error-title {
+  font-weight: 800;
+  color: var(--accent);
+  letter-spacing: 2px;
+  font-size: 13px;
+}
+.hand-tracker__error-help {
+  font-size: 11px;
+  color: var(--ink-2);
+  max-width: 220px;
+  line-height: 1.5;
+  margin: 4px 0;
+}
+.hand-tracker__error-detail {
+  font-size: 9px;
+  color: var(--ink-3);
+  max-width: 220px;
+  word-break: break-word;
+  font-family: monospace;
+  opacity: 0.7;
+}
+.camera-area .camera-hint {
+  margin-top: 8px;
+  padding: 6px 10px;
+  background: rgba(0,0,0,0.5);
+  border: 1px solid rgba(232,179,57,0.3);
+  border-radius: 4px;
+  text-align: center;
+  font-size: 13px;
+  color: #fff;
+  letter-spacing: 1px;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 手勢對照表（鏡頭區下方常駐） */
+.gesture-guide {
+  margin-top: 8px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  font-size: 11px;
+}
+.gesture-guide__item {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 7px;
+  background: rgba(0,0,0,0.45);
+  border: 1px solid rgba(232,179,57,0.25);
+  border-radius: 4px;
+  color: #fff;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+.gesture-guide__item.is-active {
+  background: rgba(232,179,57,0.25);
+  border-color: var(--accent-2);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(232,179,57,0.4);
+}
+.gesture-guide__item--off {
+  opacity: 0.45;
+  border-style: dashed;
+}
+.gesture-guide__icon {
+  font-size: 14px;
+  text-align: center;
+  line-height: 1;
+}
+.gesture-guide__label {
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #fff;
+}
+.gesture-guide__action {
+  grid-column: 1 / -1;
+  font-size: 10px;
+  color: rgba(255,255,255,0.65);
+  letter-spacing: 1px;
+  padding-left: 22px;
+}
+.gesture-guide__item--off .gesture-guide__label,
+.gesture-guide__item--off .gesture-guide__action {
+  color: var(--ink-3);
+}
+
+/* ============================================================
+   過渡畫面（Memorize / Shuffle / Result 暫用）
+   ============================================================ */
+.phase-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  z-index: 4;
+}
+.phase-overlay h2 {
+  font-family: var(--font-display);
+  font-size: 36px;
+  color: var(--ink);
+  letter-spacing: 6px;
+  margin: 0;
+}
+.phase-overlay .hint { color: var(--ink-3); letter-spacing: 4px; font-size: 13px; }
+.phase-overlay .btn-mock { width: 220px; text-align: center; }
+
+/* ============================================================
+   對話框語意分級
+   .bubble       共用基底（白膜底）
+   --narration   旁白/系統  (中性灰邊、無箭頭)
+   --owner       攤主說話   (暖色邊、有箭頭) - 已用於 title-talk / dialog-bubble / mini-owner__say
+   --player      玩家內心/操作提示 (藍冷色、虛線)
+   --warn        警告/錯誤  (紅色、會閃)
+   ============================================================ */
+.bubble {
+  position: relative;
+  background: var(--paper);
+  border: 2px dashed var(--dash);
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 14px;
+  color: var(--ink-2);
+  letter-spacing: 1px;
+}
+.bubble--narration {
+  border-color: var(--ink-3);
+  border-style: solid;
+  background: #faf8f2;
+}
+.bubble--owner {
+  border-color: var(--accent);
+  border-style: solid;
+  background: #fff8f3;
+  color: var(--ink);
+}
+.bubble--player {
+  border-color: #6a8caf;
+  border-style: dashed;
+  background: #f3f7fb;
+  color: #2d4866;
+}
+.bubble--warn {
+  border-color: var(--accent);
+  border-style: solid;
+  background: #fdecec;
+  color: #8a2a2a;
+  animation: warn-blink 1.4s ease-in-out infinite;
+}
+@keyframes warn-blink {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(217,83,79,0.0); }
+  50%      { box-shadow: 0 0 0 4px rgba(217,83,79,0.15); }
+}
+
+/* 對話 progress（小圓點） */
+.dialog-progress {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+.dialog-progress .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: transparent;
+  border: 1.5px solid var(--dash);
+}
+.dialog-progress .dot.active { background: var(--accent); border-color: var(--accent); }
+
+.dialog-title {
+  font-family: var(--font-display);
+  font-size: 22px;
+  letter-spacing: 4px;
+  margin: 0 0 12px;
+  color: var(--ink);
+}
+.rules-list {
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+}
+.rules-list li {
+  padding: 4px 0;
+  font-size: 14px;
+  color: var(--ink-2);
+  letter-spacing: 1px;
+}
+
+/* ============================================================
+   牌（翻牌動畫 placeholder）
+   ============================================================ */
+.tile--flip {
+  perspective: 600px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  position: relative;
+}
+.tile--flip .tile__face {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid var(--dash);
+  border-radius: 3px;
+  font-size: 10px;
+  color: var(--ink-3);
+  background: var(--paper);
+  backface-visibility: hidden;
+  transition: transform 0.5s cubic-bezier(.4,.2,.2,1);
+}
+.tile--flip .tile__face--back {
+  transform: rotateY(0deg);
+  background:
+    repeating-linear-gradient(45deg,
+      rgba(140,130,110,0.08) 0 4px,
+      transparent 4px 8px),
+    var(--paper);
+}
+.tile--flip .tile__face--front {
+  transform: rotateY(180deg);
+  font-weight: 700;
+  color: var(--ink-2);
+}
+.tile--flip:hover .tile__face--back  { transform: rotateY(-180deg); }
+.tile--flip:hover .tile__face--front { transform: rotateY(0deg); }
+
+/* ============================================================
+   Phase 切換淡入動畫
+   ============================================================ */
+.scene-fade {
+  animation: scene-in 360ms cubic-bezier(.2,.6,.2,1) both;
+}
+@keyframes scene-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* 小按鈕變體 */
+.btn-mock--small {
+  font-size: 11px;
+  padding: 6px 12px;
+  letter-spacing: 1px;
+}
+/* 啟用中的測試按鈕 — 暗色強調，跟普通按鈕區隔 */
+.btn-mock--active {
+  background: var(--ink);
+  color: var(--accent-2);
+  border-color: var(--accent-2);
+  border-style: solid;
+}
+.btn-mock--active:hover {
+  background: #2a2724;
+}
+
+/* 遊戲畫面右下測試控制群組 */
+.dev-controls {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  display: flex;
+  gap: 8px;
+  z-index: 10;
+}
+
+/* ============================================================
+   Board 元件（共用 6×6 棋盤）
+   兩種模式：
+   .board--motion → 絕對定位 + transform，洗牌動畫流暢
+   .board--bingo  → grid，靜態目標格
+   ============================================================ */
+.board {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  margin: 0 auto;
+}
+
+/* 共用 — 可移動牌 */
+.board--motion .board-tile {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 16.6667%;   /* 100% / 6 */
+  height: 16.6667%;
+  padding: 3px;
+  box-sizing: border-box;
+  border: none;
+  background: none;
+  cursor: default;
+  /* 1 秒平緩位移，標準 ease-in-out 曲線（兩端慢、中段勻速） */
+  transition: transform 1s cubic-bezier(.4, 0, .2, 1);
+}
+.board-tile__face {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* 牌面圖自帶牌身（米白長方形 + 透明邊），直接填滿格子 */
+.board-tile__img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+/* ============================================================
+   動腦模式 — hover 偷瞄（露下半 + 模糊）+ 限次完整偷看 + 玩家標記
+   ============================================================ */
+
+/* 露下半模糊偷瞄：牌面圖躲在牌背上，預設透明，只露下半 + 模糊 */
+.board-tile__peek-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0;
+  filter: blur(3px);
+  clip-path: polygon(0 50%, 100% 50%, 100% 100%, 0 100%);
+  transition: opacity 0.18s ease;
+  pointer-events: none;
+}
+/* hover 偷瞄（滑鼠） */
+.board-tile--peekable.board-tile--shuffle-area:hover .board-tile__peek-img {
+  opacity: 0.8;
+}
+/* 張手偷瞄（手勢） */
+.board-tile__peek-img.is-show { opacity: 0.85; }
+
+/* 比二完整偷看：整張清晰 + 金光 */
+.board-tile__peek-img--full {
+  opacity: 1 !important;
+  filter: none !important;
+  clip-path: none !important;
+  filter: drop-shadow(0 0 10px rgba(232,179,57,0.9)) !important;
+  animation: peek-pop 0.25s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes peek-pop {
+  from { transform: scale(0.7); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+
+/* 偷看模式中的洗牌區：游標變放大鏡風，提示「不是真翻」 */
+.board-tile--peeking { z-index: 12; }
+
+/* 手勢 cursor — 獨立 overlay，不綁 tile（空格也能顯示）*/
+.board__cursor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 16.6667%;
+  height: 16.6667%;
+  padding: 3px;
+  box-sizing: border-box;
+  pointer-events: none;
+  z-index: 8;
+  transition: transform 0.12s ease;
+}
+.board__cursor::before {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border: 3px solid var(--accent-2);
+  border-radius: 4px;
+  box-shadow:
+    0 0 0 2px rgba(232,179,57,0.35),
+    0 0 18px rgba(232,179,57,0.55);
+  animation: cursor-pulse 1.2s ease-in-out infinite;
+}
+@keyframes cursor-pulse {
+  0%, 100% { box-shadow: 0 0 0 2px rgba(232,179,57,0.35), 0 0 18px rgba(232,179,57,0.55); }
+  50%      { box-shadow: 0 0 0 4px rgba(232,179,57,0.55), 0 0 28px rgba(232,179,57,0.8); }
+}
+.board__cursor-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--accent-2);
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  z-index: 2;
+}
+
+/* HUD 右側群組（教學 + 偷看按鈕） */
+.game-top__right {
+  display: flex;
+  gap: 8px;
+  justify-self: end;
+}
+.btn-mock--small:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* 「正在交換的」兩張牌 — 圖片放大 + 金光 drop-shadow */
+.board-tile--moving {
+  z-index: 10;
+}
+.board-tile--moving .board-tile__img {
+  transform: scale(1.12);
+  filter: drop-shadow(0 0 14px rgba(232,179,57,0.85)) drop-shadow(0 6px 10px rgba(0,0,0,0.3));
+  transition: transform 0.25s ease, filter 0.25s ease;
+}
+
+/* 洗牌區（可點翻）：hover 牌背上浮 */
+.board-tile--shuffle-area { cursor: pointer; }
+.board-tile--shuffle-area:hover .board-tile__img {
+  transform: translateY(-4px) scale(1.03);
+  filter: drop-shadow(0 6px 8px rgba(0,0,0,0.25));
+}
+.board-tile--shuffle-area:active .board-tile__img {
+  transform: translateY(0);
+}
+
+/* Bingo 區 — 靜態 grid */
+.board--bingo {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  grid-template-rows: repeat(6, 1fr);
+  gap: 4px;
+  padding: 2px;
+}
+.board-cell {
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+.board-cell__img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+/* 未補實：淡淡的目標提示 */
+.board-cell__img.ghost {
+  opacity: 0.16;
+  filter: grayscale(0.3);
+}
+
+/* 已補實：彈跳出現 */
+.board-cell.revealed {
+  animation: cell-pop 0.5s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes cell-pop {
+  0%   { transform: scale(0.3); opacity: 0; }
+  60%  { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+/* ============================================================
+   台式鞭炮 + 煙火特效（Phase 2 隱藏洗牌段）
+   ============================================================ */
+.firework {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  overflow: hidden;
+  animation: firework-in 0.4s ease both;
+}
+@keyframes firework-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Lottie 動畫容器（鋪滿整個 firework overlay） */
+.firework__lottie {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+/* 第二層煙火疊加：用 screen blend mode 讓兩個動畫疊起來不互相蓋 */
+.firework__lottie--overlay {
+  mix-blend-mode: screen;
+  opacity: 0.9;
+}
+
+/* 紅金交替閃爍背景 */
+.firework__bg {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 50%,
+    rgba(230, 70, 60, 0.95) 0%,
+    rgba(140, 20, 20, 0.92) 35%,
+    rgba(20, 6, 4, 0.95) 80%);
+  animation: bg-flash 0.18s steps(2) infinite;
+}
+@keyframes bg-flash {
+  0%   { filter: hue-rotate(0deg) brightness(1); }
+  100% { filter: hue-rotate(35deg) brightness(1.25); }
+}
+
+/* 左右兩串鞭炮：從上吊一條紅繩串珠 */
+.firecracker {
+  position: absolute;
+  top: 0;
+  width: 32px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 0;
+  gap: 6px;
+}
+.firecracker--left  { left: 4%;  }
+.firecracker--right { right: 4%; }
+.firecracker__bead {
+  display: block;
+  width: 22px;
+  height: 36px;
+  border-radius: 5px;
+  background: linear-gradient(180deg, #ff5050 0%, #b71c1c 100%);
+  box-shadow:
+    inset 0 -3px 0 rgba(0,0,0,0.3),
+    inset 0 2px 0 rgba(255,255,255,0.25),
+    0 0 8px rgba(255,80,80,0.6);
+  animation: bead-flash 0.32s ease-in-out infinite;
+}
+.firecracker__bead::after {
+  /* 引線/閃光 */
+  content: "";
+  position: absolute;
+  width: 3px;
+  height: 8px;
+  background: var(--accent-2, #f4c041);
+  box-shadow: 0 0 8px var(--accent-2, #f4c041);
+}
+@keyframes bead-flash {
+  0%, 100% {
+    box-shadow:
+      inset 0 -3px 0 rgba(0,0,0,0.3),
+      inset 0 2px 0 rgba(255,255,255,0.25),
+      0 0 8px rgba(255,80,80,0.6);
+    transform: translateY(0);
+  }
+  50% {
+    box-shadow:
+      inset 0 -3px 0 rgba(0,0,0,0.3),
+      inset 0 2px 0 rgba(255,255,255,0.5),
+      0 0 24px rgba(255,200,80,1),
+      0 0 40px rgba(255,80,80,0.9);
+    transform: translateY(-2px) scale(1.08);
+  }
+}
+
+/* 火花散落 */
+.firework__spark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border-radius: 50%;
+  background: var(--c, #f4c041);
+  box-shadow: 0 0 18px var(--c, #f4c041), 0 0 36px var(--c, #f4c041);
+  animation: spark-burst 1.6s cubic-bezier(.2,.6,.4,1) infinite;
+  transform: translate(-50%, -50%);
+}
+@keyframes spark-burst {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 1;
+  }
+  20% {
+    transform: translate(calc(-50% + var(--dx) * 0.4), calc(-50% + var(--dy) * 0.4)) scale(1.4);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(0.2);
+    opacity: 0;
+  }
+}
+
+/* 漂浮的吉祥字（發、中、炸、金⋯） */
+.firework__float {
+  position: absolute;
+  font-family: var(--font-display);
+  font-weight: 900;
+  color: var(--accent-2, #f4c041);
+  text-shadow:
+    0 0 12px #fff,
+    0 0 24px var(--accent-2, #f4c041),
+    0 0 48px #e63946;
+  animation: float-fly 1.8s cubic-bezier(.2,.6,.4,1) infinite;
+  user-select: none;
+}
+@keyframes float-fly {
+  0%   { opacity: 0; transform: scale(0.4) translateY(40px) rotate(0deg); }
+  30%  { opacity: 1; transform: scale(1.3) translateY(0) rotate(8deg); }
+  100% { opacity: 0; transform: scale(0.8) translateY(-80px) rotate(-12deg); }
+}
+
+/* 中央大字（搖晃、輪播） */
+.firework__big {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: clamp(80px, 16vw, 220px);
+  color: #fff;
+  letter-spacing: 16px;
+  text-shadow:
+    0 0 16px #fff,
+    0 0 32px var(--accent-2, #f4c041),
+    0 0 64px var(--accent, #e63946),
+    6px 6px 0 rgba(0,0,0,0.6);
+  animation: big-pop 0.5s cubic-bezier(.34,1.56,.64,1), big-shake 0.16s ease-in-out infinite 0.5s;
+  user-select: none;
+}
+@keyframes big-pop {
+  0%   { transform: scale(0.2) rotate(-20deg); opacity: 0; }
+  60%  { transform: scale(1.25) rotate(4deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0); opacity: 1; }
+}
+@keyframes big-shake {
+  0%, 100% { transform: rotate(-3deg) translateX(-4px); }
+  50%      { transform: rotate(3deg) translateX(4px); }
+}
+
+/* ============================================================
+   翻牌飛行 overlay（fixed positioning，從洗牌區飛到 Bingo 區）
+   ============================================================ */
+.flying-tile {
+  position: fixed;
+  pointer-events: none;
+  z-index: 200;
+  padding: 3px;
+  box-sizing: border-box;
+  transform-origin: top left;
+  transition: transform 0.7s cubic-bezier(.34, .8, .3, 1);
+}
+.flying-tile__face {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--accent);
+  border-radius: 6px;
+  background: #fff8f3;
+  color: var(--ink);
+  font-size: clamp(11px, 1.6vw, 16px);
+  font-weight: 700;
+  letter-spacing: 1px;
+  box-shadow:
+    0 14px 28px rgba(0,0,0,0.28),
+    0 0 0 3px rgba(232,179,57,0.4),
+    0 0 24px rgba(232,179,57,0.55);
+}
+
+/* 連線發光 */
+.board-cell.glow {
+  border-color: var(--accent);
+  animation: line-glow 0.7s ease-in-out infinite alternate, cell-pop 0.5s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes line-glow {
+  0%   { box-shadow: 0 0 0 0 rgba(217,83,79,0.0), 0 0 0 0 rgba(232,179,57,0.0); background: var(--paper); }
+  100% { box-shadow: 0 0 0 3px rgba(217,83,79,0.45), 0 0 18px rgba(232,179,57,0.7); background: #fff7e8; }
+}
+
+/* ===== 結算畫面（老闆右、對話框左上、娃娃中、按鈕左下）===== */
+.result-screen {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  overflow: hidden;
+}
+.result-owner-big {
+  position: absolute;
+  right: 4vw;
+  bottom: 0;
+  height: min(90vh, 820px);
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 24px rgba(0,0,0,0.5));
+  z-index: 2;
+  pointer-events: none;
+}
+/* 對話框：畫面上方置中（在老闆左邊區域）*/
+.result-bubble {
+  position: absolute;
+  top: 6vh;
+  left: 50%;
+  transform: translateX(-65%);  /* 偏左一些避開老闆 */
+  max-width: 380px;
+  padding: 18px 22px;
+  background: #fff8f3;
+  border: 3px solid var(--accent);
+  border-radius: 18px;
+  color: var(--ink);
+  font-size: 18px;
+  line-height: 1.7;
+  letter-spacing: 1px;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.3);
+  z-index: 4;
+  animation: bubble-pop 0.4s cubic-bezier(.34,1.56,.64,1);
+}
+/* 尖角指向右下（老闆方向） */
+.result-bubble::after {
+  content: '';
+  position: absolute;
+  right: 30px;
+  bottom: -16px;
+  width: 0; height: 0;
+  border: 12px solid transparent;
+  border-top-color: var(--accent);
+  border-bottom: 0;
+}
+/* 娃娃卡：畫面中央（垂直水平都置中、稍微偏左給老闆讓位）*/
+.result-screen .prize-card {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-65%, -50%);
+  z-index: 3;
+}
+/* 按鈕：娃娃下方置中 */
+.result-actions {
+  position: absolute;
+  left: 50%;
+  bottom: 8vh;
+  transform: translateX(-65%);
+  display: flex;
+  gap: 14px;
+  z-index: 4;
+}
+
+/* ============================================================
+   結算「新獲得娃娃」卡片
+   ============================================================ */
+.prize-card {
+  position: relative;
+  background: var(--paper);
+  border: 3px solid var(--dash);
+  border-radius: 14px;
+  padding: 36px 48px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-width: 260px;
+  animation: prize-pop 0.55s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes prize-pop {
+  0%   { transform: scale(0.3) rotate(-8deg); opacity: 0; }
+  60%  { transform: scale(1.1) rotate(2deg); }
+  100% { transform: scale(1) rotate(0); opacity: 1; }
+}
+
+.prize-card__banner {
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--accent);
+  color: #fff;
+  padding: 4px 16px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 4px;
+  box-shadow: 0 4px 10px rgba(217,83,79,0.4);
+  white-space: nowrap;
+}
+.prize-card__img {
+  width: 160px;
+  height: 160px;
+  object-fit: contain;
+  animation: prize-bob 1.8s ease-in-out infinite;
+}
+@keyframes prize-bob {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+
+/* 稀有度邊框 */
+.prize-card--common    { border-color: var(--ink-3); }
+.prize-card--rare      { border-color: #6a8caf; box-shadow: 0 0 0 1px rgba(106,140,175,0.2), 0 8px 24px rgba(106,140,175,0.18); }
+.prize-card--legendary {
+  border-color: var(--accent-2);
+  box-shadow:
+    0 0 0 2px rgba(232,179,57,0.3),
+    0 0 30px rgba(232,179,57,0.45),
+    0 0 60px rgba(217,83,79,0.3);
+  background: linear-gradient(180deg, #fff8e8, var(--paper));
+}
+
+/* ============================================================
+   Gallery / 戰利品架
+   ============================================================ */
+.gallery-screen {
+  position: absolute;
+  inset: 0;
+  padding: 8px 24px 0;
+  display: flex;
+  flex-direction: column;
+  z-index: 2;
+  overflow: hidden;
+}
+.gallery-back {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 5;
+}
+.gallery-stats {
+  position: absolute;
+  top: 20px;
+  right: 24px;
+  z-index: 5;
+  padding: 6px 16px;
+  background: rgba(0,0,0,0.55);
+  border: 1.5px solid var(--accent-2);
+  border-radius: 8px;
+  letter-spacing: 2px;
+  color: #fff;
+  font-size: 15px;
+}
+.gallery-stats b {
+  color: var(--accent-2);
+  font-size: 22px;
+  margin: 0 4px;
+}
+
+/* 主區：鐵架娃娃靠上 + 右邊老闆貼底（仿組合示意圖）*/
+.gallery-main {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 12px;
+  margin-left: 0;
+}
+.gallery-owner {
+  height: min(95%, 720px);
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 24px rgba(0,0,0,0.6));
+  /* 老闆貼底，不懸空；手臂插進鐵架後（負 margin + z-index 在鐵架後）*/
+  align-self: flex-end;
+  margin-bottom: -3vh;
+  margin-left: -12vw;
+  position: relative;
+  z-index: -1;
+}
+.doll-shelf {
+  position: relative;
+  z-index: 1;
+}
+.icon-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.5);
+  color: #fff;
+  border: 2px solid rgba(255,255,255,0.4);
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.icon-btn:hover { background: rgba(0,0,0,0.7); }
+
+/* 娃娃牆：鐵架背景（橫 3:2）+ 3 排 flex 錯落（仿示意圖） */
+.doll-shelf {
+  height: min(92%, 680px);
+  aspect-ratio: 3 / 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  padding: 6% 5%;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+}
+/* 每排都對鐵架中央對稱（金字塔狀往兩側發散）— 整組往左偏 + 間距縮小 */
+.doll-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0;
+  padding: 0;
+  margin-left: -14%;
+}
+
+/* 單一娃娃（固定寬度，不自動填滿 row，才能真正靠左排）*/
+.doll {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18%;
+  height: 100%;
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+}
+.doll:hover { transform: translateY(-3px) scale(1.05); }
+.doll__img {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+/* 稀有度光暈 */
+.doll--rare .doll__img { filter: drop-shadow(0 0 8px rgba(106,140,175,0.7)); }
+.doll--legendary .doll__img { filter: drop-shadow(0 0 12px rgba(232,179,57,0.9)); }
+
+/* 未獲得：剪影 + 大「?」 */
+.doll--locked .doll__img {
+  filter: brightness(0) opacity(0.25);
+}
+.doll--locked::after {
+  content: "?";
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: clamp(28px, 4vw, 48px);
+  font-weight: 900;
+  color: rgba(255,255,255,0.5);
+  pointer-events: none;
+}
+
+.gallery-hint {
+  flex-shrink: 0;
+  text-align: center;
+  margin: 0 auto;
+  max-width: 480px;
+}
+
+/* ============================================================
+   手勢校正畫面
+   ============================================================ */
+.calib-btn {
+  margin-top: 4px;
+  width: 100%;
+  justify-content: center;
+}
+.calib-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  max-width: 520px;
+}
+.calib-camera {
+  width: min(440px, 80vw);
+  aspect-ratio: 4 / 3;
+  background: #050507;
+  border: 2px dashed var(--dash);
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+}
+.calib-hint {
+  text-align: center;
+  line-height: 1.7;
+}
+.calib-hint b { color: var(--accent); }
+
+/* Phase 1 記憶階段的浮動鏡頭（動腦模式手勢標記用） */
+.floating-camera {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  width: 200px;
+  z-index: 20;
+}
+.floating-camera > .hand-tracker {
+  aspect-ratio: 4 / 3;
+  background: #050507;
+  border: 2px solid var(--accent-2);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+}
+.floating-camera__hint {
+  margin-top: 6px;
+  text-align: center;
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--ink-2);
+  background: var(--paper);
+  border: 1.5px dashed var(--dash);
+  border-radius: 4px;
+  padding: 4px 8px;
+}
+
+/* 步驟進度點 */
+.calib-steps {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.calib-step-dot {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 2px dashed var(--dash);
+  background: var(--paper);
+  font-size: 16px;
+  color: var(--ink-3);
+}
+.calib-step-dot.active {
+  border-style: solid;
+  border-color: var(--accent-2);
+  background: #fff8e8;
+  box-shadow: 0 0 12px rgba(232,179,57,0.4);
+  transform: scale(1.1);
+}
+.calib-step-dot.done {
+  border-style: solid;
+  border-color: #3a8a55;
+  background: #eaf6ee;
+  color: #3a8a55;
+  font-weight: 900;
+}
+
+/* 完成 ✓ 大勾 */
+.calib-check {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 90px;
+  font-weight: 900;
+  color: #3a8a55;
+  background: rgba(255,255,255,0.55);
+  animation: calib-check-pop 0.4s cubic-bezier(.34,1.56,.64,1);
+  z-index: 5;
+}
+@keyframes calib-check-pop {
+  0%   { transform: scale(0.3); opacity: 0; }
+  60%  { transform: scale(1.2); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* ============================================================
+   Phase 1 / 2 畫面（記憶 + 洗牌）
+   ============================================================ */
+.phase-screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  gap: 16px;
+  align-items: center;
+  justify-content: center;
+}
+.phase-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 720px;
+}
+.phase-title {
+  font-family: var(--font-display);
+  font-size: 24px;
+  letter-spacing: 6px;
+  color: var(--ink);
+  margin: 0;
+}
+
+/* 倒數 */
+.countdown, .shuffle-progress {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 8px 18px;
+  background: var(--paper);
+  border: 2px dashed var(--dash);
+  border-radius: 4px;
+}
+.countdown__label {
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--ink-3);
+}
+.countdown__num {
+  font-family: var(--font-display);
+  font-size: 36px;
+  font-weight: 900;
+  color: var(--ink);
+  line-height: 1;
+  min-width: 1.2em;
+  text-align: center;
+  display: inline-block;
+  animation: num-pop 0.4s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes num-pop {
+  0%   { transform: scale(0.6); opacity: 0; }
+  60%  { transform: scale(1.2); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.countdown--warn {
+  border-color: var(--accent);
+  background: #fdecec;
+  animation: warn-blink 0.8s ease-in-out infinite;
+}
+.countdown--warn .countdown__num,
+.countdown--warn .countdown__label {
+  color: var(--accent);
+}
+
+/* Phase 1/2 大棋盤（中央顯示） */
+.board-wrap {
+  width: 100%;
+  max-width: min(560px, 60vh);
+  margin: 0 auto;
+}
+
+/* 記憶/洗牌：棋盤放大佔滿畫面（取寬高較小值維持正方形） */
+.phase-screen--full {
+  padding: 12px;
+  justify-content: center;
+}
+.board-wrap--big {
+  width: min(94vw, 92vh);
+  max-width: min(94vw, 92vh);
+}
+
+/* 浮動倒數純數字（記憶階段，右上角） */
+.count-float {
+  position: absolute;
+  top: 20px;
+  right: 28px;
+  font-family: var(--font-display);
+  font-size: clamp(48px, 8vw, 96px);
+  font-weight: 900;
+  color: var(--ink);
+  line-height: 1;
+  z-index: 10;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  animation: num-pop 0.4s cubic-bezier(.34,1.56,.64,1);
+}
+.count-float--warn {
+  color: var(--accent);
+  animation: num-pop 0.4s cubic-bezier(.34,1.56,.64,1), warn-blink 0.7s ease-in-out infinite;
+}
+
+/* Phase 3 遊戲區內的棋盤：用 container query 取「可用寬/高的較小值」當正方形邊長
+   這樣棋盤會盡量填滿 area，不會被高度卡住變很小 */
+.board-wrap--game {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  container-type: size;
+}
+.board-wrap--game .board {
+  width: min(100cqi, 100cqb);
+  height: min(100cqi, 100cqb);
+}
+
+.phase-hint {
+  max-width: 480px;
+  text-align: center;
+}
+
+.remain__sub {
+  font-size: 14px;
+  color: rgba(255,255,255,0.7);
+  letter-spacing: 1px;
+}
+
+/* ============================================================
+   開發用：右上角畫面切換器（之後刪掉）
+   ============================================================ */
+.dev-nav {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  gap: 4px;
+  background: rgba(255,255,255,0.85);
+  padding: 4px;
+  border: 1px solid var(--dash);
+  border-radius: 4px;
+  z-index: 100;
+  font-size: 10px;
+}
+.dev-nav button {
+  padding: 4px 8px;
+  border: 1px solid var(--dash);
+  background: #fff;
+  color: var(--ink-2);
+  letter-spacing: 1px;
+  border-radius: 2px;
+}
+.dev-nav button.active { background: var(--ink); color: #fff; border-color: var(--ink); }
