@@ -13,6 +13,7 @@ import { LottieFx } from './components/LottieFx.jsx';
 import {
   LOGO, OWNER, BTN_START, BTN_START_HOVER, BTN_GALLERY, BTN_GALLERY_HOVER,
   BTN_TUTORIAL, BTN_TUTORIAL_HOVER,
+  BTN_NORMAL, BTN_NORMAL_HOVER, BTN_TIMED, BTN_TIMED_HOVER,
   SHELF, DOLL_IMAGES, BG_MAIN, BG_FELT,
   SFX, TUTORIAL_VOICES, VOICE,
 } from './assets.js';
@@ -29,6 +30,7 @@ import {
 
 const PHASES = {
   START: 'START',
+  MODE_SELECT: 'MODE_SELECT',
   OPENING: 'OPENING',
   RULES: 'RULES',
   GALLERY: 'GALLERY',
@@ -39,6 +41,10 @@ const PHASES = {
   RESULT: 'RESULT',
 };
 
+// 玩法模式
+const PLAY_MODES = { NORMAL: 'normal', TIMED: 'timed' };
+const TIMED_SECONDS = 30; // 限時模式秒數
+
 /* ===== 手勢校正：每個人手的活動範圍不同，校正後存起來 ===== */
 const ZONE_KEY = 'night-market-bingo.handZone';
 const DEFAULT_ZONE = { x: [0.15, 0.85], y: [0.2, 0.8] };
@@ -47,7 +53,7 @@ const RANGE_SECONDS = 10;  // 範圍校正倒數秒數（給足時間繞四個�
 /* 校正精靈步驟 */
 const CALIB_STEPS = [
   { key: 'range', icon: '🖐', title: '移動範圍', hint: '別緊張～伸出食指，慢慢在鏡頭前往四個角落各停一下（左上→右上→右下→左下）' },
-  { key: 'peace', icon: '✌', title: '翻牌動作', hint: '比出 YA（食指 + 中指）— 這就是「翻牌」' },
+  { key: 'flip',  icon: '🫳', title: '翻牌動作', hint: '伸食指指著任一處 → 把食指彎下 → 這就是「翻牌」' },
   { key: 'open',  icon: '✋', title: '張開手',   hint: '五指完全張開讓鏡頭看見' },
 ];
 function loadZone() {
@@ -403,6 +409,10 @@ function App() {
   /* 測試模式：無視翻牌次數限制，可一直翻完 36 張 */
   const [testMode, setTestMode] = useState(false);
 
+  /* 玩法模式：normal / timed + 限時倒數 */
+  const [playMode, setPlayMode] = useState(PLAY_MODES.NORMAL);
+  const [timeLeft, setTimeLeft] = useState(TIMED_SECONDS);
+
   /* 遊戲模式：casual（半運氣）/ memory（動腦） */
   const [mode, setMode] = useState(() => loadMode());
 
@@ -429,7 +439,9 @@ function App() {
 
   /* 開新一局：在進 Phase 1 前呼叫 */
   const startGame = () => {
-    const g = createGame({ mode });
+    // 限時模式：給 36 張全可翻（不靠次數限制，靠時間）
+    const flipBudget = playMode === PLAY_MODES.TIMED ? 36 : undefined;
+    const g = createGame({ mode, flipBudget });
     setGame(g);
     setCountdown(MEMORIZE_SECONDS);
     setShuffleStep(0);
@@ -438,6 +450,7 @@ function App() {
     setShuffleSubPhase('visible');
     setGlowingCells([]);
     setNewDoll(null);
+    setTimeLeft(TIMED_SECONDS);
     // 動腦工具
     setPeeksRemaining(PEEK_BUDGET);
     setPeekMode(false);
@@ -578,6 +591,17 @@ function App() {
     return () => clearInterval(t);
   }, [phase]);
 
+  /* 限時模式倒數 — Phase 3 開始倒數，時間到自動結算 */
+  useEffect(() => {
+    if (phase !== PHASES.FLIP || playMode !== PLAY_MODES.TIMED) return;
+    if (timeLeft <= 0) {
+      goToResult(game);
+      return;
+    }
+    const t = setTimeout(() => setTimeLeft((s) => s - 1), 1000);
+    return () => clearTimeout(t);
+  }, [phase, playMode, timeLeft, game]);
+
   /* commit：真正改 game state（連線發光 + game over）
      測試模式 → 把扣掉的次數補回去、不自動進結算 */
   const commitFlip = (pos, gameSnapshot) => {
@@ -602,7 +626,8 @@ function App() {
         }, GLOW_DURATION_MS);
       });
     }
-    if (!testMode && isGameOver(finalState)) {
+    // 限時模式不看翻牌次數，靠時間到才結算
+    if (!testMode && playMode !== PLAY_MODES.TIMED && isGameOver(finalState)) {
       setTimeout(() => goToResult(finalState), 1000);
     }
   };
@@ -699,15 +724,15 @@ function App() {
       return;
     }
 
-    // 比二 = 翻牌（明確的手勢，不易誤觸）
-    if (g === GESTURE_PEACE && phase === PHASES.FLIP) {
-      const pos = lastPointedPosRef.current ?? gestureHoverPos;
+    // 彎食指 = 翻牌（從指向狀態轉換，自然且穩定）
+    if (g === GESTURE_FLIP && phase === PHASES.FLIP) {
+      const pos = point ? pointToPos(point) : gestureHoverPos;
       if (pos !== null && pos !== undefined) handleFlip(pos);
       return;
     }
 
-    // 彎食指 = 完整偷看最後指向的牌（動腦專屬，限 3 次）
-    if (g === GESTURE_FLIP && phase === PHASES.FLIP && mode === 'memory') {
+    // 比二 = 完整偷看最後指向的牌（動腦專屬，限 3 次）
+    if (g === GESTURE_PEACE && phase === PHASES.FLIP && mode === 'memory') {
       const pos = lastPointedPosRef.current;
       if (pos !== null && pos !== undefined) doPeek(pos);
       return;
@@ -817,7 +842,13 @@ function App() {
       ? game.shuffleArea.map((id, i) => (i === flying.srcPos ? null : id))
       : game?.shuffleArea;
 
-  const goRules = () => { setOpeningIdx(0); setPhase(PHASES.RULES); };
+  // 教學跑完要回的地方（Title 按 → START；遊戲中按 → FLIP）
+  const rulesReturnRef = useRef(PHASES.START);
+  const goRules = () => {
+    rulesReturnRef.current = phase === PHASES.FLIP ? PHASES.FLIP : PHASES.START;
+    setOpeningIdx(0);
+    setPhase(PHASES.RULES);
+  };
 
   return (
     <div className="app" style={{ backgroundImage: `url(${BG_MAIN})` }}>
@@ -846,7 +877,7 @@ function App() {
             <ImgButton
               className="title-img-btn"
               src={BTN_START} hoverSrc={BTN_START_HOVER} alt="開始"
-              onClick={() => { playBgm(SFX.bgm); setOpeningIdx(0); setPhase(PHASES.OPENING); }}
+              onClick={() => { playBgm(SFX.bgm); setPhase(PHASES.MODE_SELECT); }}
             />
             <ImgButton
               className="title-img-btn"
@@ -862,6 +893,32 @@ function App() {
             onClick={goRules}
           />
 
+        </div>
+      )}
+
+      {/* ============== 模式選擇（Start 之後）============== */}
+      {phase === PHASES.MODE_SELECT && (
+        <div className="mode-select-screen scene-fade">
+          <h2 className="mode-select-title">選擇玩法</h2>
+          <div className="mode-select-buttons">
+            <div className="mode-select-card">
+              <ImgButton
+                className="mode-select-btn"
+                src={BTN_NORMAL} hoverSrc={BTN_NORMAL_HOVER} alt="普通"
+                onClick={() => { setPlayMode(PLAY_MODES.NORMAL); setOpeningIdx(0); setPhase(PHASES.OPENING); }}
+              />
+              <div className="mode-select-desc">15 次翻牌機會<br/>慢慢來</div>
+            </div>
+            <div className="mode-select-card">
+              <ImgButton
+                className="mode-select-btn"
+                src={BTN_TIMED} hoverSrc={BTN_TIMED_HOVER} alt="限時"
+                onClick={() => { setPlayMode(PLAY_MODES.TIMED); setOpeningIdx(0); setPhase(PHASES.OPENING); }}
+              />
+              <div className="mode-select-desc">{TIMED_SECONDS} 秒挑戰<br/>看你連幾條</div>
+            </div>
+          </div>
+          <button className="mode-select-back" onClick={() => setPhase(PHASES.START)}>◂ 返回</button>
         </div>
       )}
 
@@ -908,7 +965,7 @@ function App() {
               className="dialog-next"
               onClick={() => {
                 if (openingIdx < TUTORIAL_LINES.length - 1) setOpeningIdx(openingIdx + 1);
-                else setPhase(game ? PHASES.FLIP : PHASES.START);
+                else setPhase(rulesReturnRef.current);
               }}
             >
               {openingIdx < TUTORIAL_LINES.length - 1 ? '下一句 ▸' : '我知道了 ▸'}
@@ -1026,6 +1083,7 @@ function App() {
       {/* ============== Phase 2 — 蓋牌洗牌 ============== */}
       {phase === PHASES.SHUFFLE && game && liveArr && (
         <div className="phase-screen phase-screen--full scene-fade">
+          <div className="memorize-hint">洗牌中⋯緊盯著看！</div>
           <div className="board-wrap board-wrap--big">
             <Board tiles={liveArr} mode="face-down" movingIds={movingIds} />
           </div>
@@ -1046,8 +1104,17 @@ function App() {
             </div>
 
             <div className="remain">
-              <b>{testMode ? '∞' : game.flipsRemaining}</b>
-              <span className="remain__sub">{Math.min(game.completedLines.length, 3)}/3</span>
+              {playMode === PLAY_MODES.TIMED ? (
+                <>
+                  <b className={timeLeft <= 5 ? 'remain--warn' : ''}>{timeLeft}s</b>
+                  <span className="remain__sub">{Math.min(game.completedLines.length, 3)}/3</span>
+                </>
+              ) : (
+                <>
+                  <b>{testMode ? '∞' : game.flipsRemaining}</b>
+                  <span className="remain__sub">{Math.min(game.completedLines.length, 3)}/3</span>
+                </>
+              )}
             </div>
 
             <div className="game-top__right">
@@ -1105,14 +1172,14 @@ function App() {
                 />
               </div>
               <div className="camera-hint">
-                {currentGesture === GESTURE_NONE && '伸食指對準金框 → 比 YA 翻牌'}
+                {currentGesture === GESTURE_NONE && '伸食指對準金框 → 彎食指翻牌'}
                 {currentGesture === GESTURE_POINT && gestureHoverPos !== null && (
                   <>☝ ({Math.floor(gestureHoverPos / 6)},{gestureHoverPos % 6})</>
                 )}
                 {currentGesture === GESTURE_POINT && gestureHoverPos === null && '☝ 框外'}
-                {currentGesture === GESTURE_PEACE && '✌ 翻牌！'}
+                {currentGesture === GESTURE_FLIP && '🫳 翻牌！'}
                 {currentGesture === GESTURE_OPEN && '✋ 偷瞄'}
-                {currentGesture === GESTURE_FLIP && '🫳 偷看'}
+                {currentGesture === GESTURE_PEACE && '✌ 偷看'}
               </div>
 
               <div className="gesture-guide">
@@ -1121,9 +1188,9 @@ function App() {
                   <span className="gesture-guide__label">伸食指</span>
                   <span className="gesture-guide__action">移動</span>
                 </div>
-                <div className={`gesture-guide__item${currentGesture === GESTURE_PEACE ? ' is-active' : ''}`}>
-                  <span className="gesture-guide__icon">✌</span>
-                  <span className="gesture-guide__label">比 YA</span>
+                <div className={`gesture-guide__item${currentGesture === GESTURE_FLIP ? ' is-active' : ''}`}>
+                  <span className="gesture-guide__icon">🫳</span>
+                  <span className="gesture-guide__label">彎食指</span>
                   <span className="gesture-guide__action">翻牌</span>
                 </div>
                 <div className={`gesture-guide__item${currentGesture === GESTURE_OPEN ? ' is-active' : ''}`}>
@@ -1132,9 +1199,9 @@ function App() {
                   <span className="gesture-guide__action">模糊偷瞄</span>
                 </div>
                 {mode === 'memory' && (
-                  <div className={`gesture-guide__item${currentGesture === GESTURE_FLIP ? ' is-active' : ''}`}>
-                    <span className="gesture-guide__icon">🫳</span>
-                    <span className="gesture-guide__label">彎食指</span>
+                  <div className={`gesture-guide__item${currentGesture === GESTURE_PEACE ? ' is-active' : ''}`}>
+                    <span className="gesture-guide__icon">✌</span>
+                    <span className="gesture-guide__label">比 YA</span>
                     <span className="gesture-guide__action">完整偷看 ({peeksRemaining})</span>
                   </div>
                 )}

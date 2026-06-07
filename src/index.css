@@ -558,6 +558,64 @@ button {
   font-weight: 900;
   line-height: 1;
 }
+.remain b.remain--warn {
+  color: var(--accent);
+  animation: warn-blink 0.6s ease-in-out infinite;
+}
+
+/* ===== 模式選擇畫面 ===== */
+.mode-select-screen {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+}
+.mode-select-title {
+  font-family: var(--font-display);
+  font-size: clamp(28px, 4vw, 48px);
+  letter-spacing: 8px;
+  color: #fff;
+  text-shadow: 0 4px 16px rgba(0,0,0,0.7);
+  margin: 0;
+}
+.mode-select-buttons {
+  display: flex;
+  gap: clamp(20px, 4vw, 60px);
+  align-items: center;
+}
+.mode-select-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.mode-select-btn { width: min(220px, 24vw); }
+.mode-select-desc {
+  font-size: clamp(13px, 1.4vw, 16px);
+  color: #fff;
+  text-align: center;
+  letter-spacing: 2px;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.8);
+  line-height: 1.6;
+}
+.mode-select-back {
+  position: absolute;
+  left: max(16px, 2vw);
+  bottom: max(16px, 2vh);
+  padding: 8px 18px;
+  background: rgba(0,0,0,0.55);
+  border: 1.5px solid rgba(255,255,255,0.4);
+  border-radius: 6px;
+  color: #fff;
+  font-size: 14px;
+  letter-spacing: 2px;
+  cursor: pointer;
+}
+.mode-select-back:hover { background: rgba(0,0,0,0.75); }
 
 /* 右上麻將桌邊裝飾（白膜） */
 .deco {
@@ -1867,7 +1925,8 @@ button {
   font-family: var(--font-display);
   font-size: 24px;
   letter-spacing: 6px;
-  color: var(--ink);
+  color: #fff;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.6);
   margin: 0;
 }
 

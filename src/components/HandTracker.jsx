@@ -45,6 +45,17 @@ function fingerState(tip, pip) {
    - indexBent  食指明確彎曲
    - othersBent 中指+無名指+小指 都彎曲（撥頭髮/張手時這三指通常不會同時彎）
 */
+/* 檢查關鍵 landmark 是否都在鏡頭內（不貼邊）— 太靠邊時 mediapipe 估計不準 */
+function isHandInFrame(landmarks) {
+  // 檢查食指尖、中指尖、手腕（最關鍵的點）
+  const SAFE = 0.05; // 距邊緣 5% 內視為「快出框」不可信
+  const checkPts = [0, 4, 8, 12, 16, 20]; // 手腕 + 5 個指尖
+  return checkPts.every((i) => {
+    const p = landmarks[i];
+    return p.x > SAFE && p.x < 1 - SAFE && p.y > SAFE && p.y < 1 - SAFE;
+  });
+}
+
 function analyzeHand(landmarks) {
   const index = fingerState(landmarks[8], landmarks[6]);
   const middle = fingerState(landmarks[12], landmarks[10]);
@@ -60,8 +71,9 @@ function analyzeHand(landmarks) {
     othersBent,
     // 五指張開（含拇指就不檢查，四指都伸即可）
     allExt: index === 'ext' && middle === 'ext' && ring === 'ext' && pinky === 'ext',
-    // 比二：食指+中指伸，無名+小指彎
-    peace: index === 'ext' && middle === 'ext' && ring === 'bent' && pinky === 'bent',
+    // 比二：食指+中指明顯伸，無名小指「不伸直」即可（mid 或 bent 都算）
+    // 放寬無名小指條件，因為比 YA 時這兩指自然狀態通常是 mid 而非 bent
+    peace: index === 'ext' && middle === 'ext' && ring !== 'ext' && pinky !== 'ext',
   };
 }
 
@@ -97,7 +109,7 @@ export function HandTracker({
   const extraGesturesRef = useRef(extraGestures);
   extraGesturesRef.current = extraGestures;
   const extraStableRef = useRef({ candidate: GESTURE_NONE, count: 0 });
-  const EXTRA_STABLE = 5;
+  const EXTRA_STABLE = 3;
 
   // 用 ref 存 callback，避免 onGesture 每次 render 換 reference 觸發整個 mediapipe 重 init
   const onGestureRef = useRef(onGesture);
@@ -206,7 +218,10 @@ export function HandTracker({
                 // idle 狀態：校正模式額外偵測張手/比二（防抖）
                 fsm.pointCount = 0;
                 if (extraGesturesRef.current) {
-                  const extra = hand.allExt ? GESTURE_OPEN
+                  // 只在手「完整在框內」才接受 → 跑出鏡頭時不誤判
+                  const inFrame = isHandInFrame(landmarks);
+                  const extra = !inFrame ? GESTURE_NONE
+                    : hand.allExt ? GESTURE_OPEN
                     : hand.peace ? GESTURE_PEACE
                     : GESTURE_NONE;
                   const s = extraStableRef.current;

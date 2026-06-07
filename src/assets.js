@@ -53,6 +53,10 @@ export const BTN_GALLERY = pick(rootG, '物品.png');
 export const BTN_GALLERY_HOVER = pick(rootG, '物品_選取.png');
 export const BTN_TUTORIAL = pick(rootG, '教學.png');
 export const BTN_TUTORIAL_HOVER = pick(rootG, '教學_選取.png');
+export const BTN_NORMAL = pick(rootG, '普通.png');
+export const BTN_NORMAL_HOVER = pick(rootG, '普通_選取.png');
+export const BTN_TIMED = pick(rootG, '限時.png');
+export const BTN_TIMED_HOVER = pick(rootG, '限時_選取.png');
 export const SHELF = pick(rootG, '鐵架.png');
 
 /* ===== 娃娃 1-10 ===== */
