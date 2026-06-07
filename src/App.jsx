@@ -42,14 +42,13 @@ const PHASES = {
 /* ===== 手勢校正：每個人手的活動範圍不同，校正後存起來 ===== */
 const ZONE_KEY = 'night-market-bingo.handZone';
 const DEFAULT_ZONE = { x: [0.15, 0.85], y: [0.2, 0.8] };
-const RANGE_SECONDS = 6;  // 範圍校正倒數秒數
+const RANGE_SECONDS = 10;  // 範圍校正倒數秒數（給足時間繞四個角）
 
 /* 校正精靈步驟 */
 const CALIB_STEPS = [
-  { key: 'range', icon: '🖐', title: '移動範圍', hint: '伸出食指，在鏡頭前繞畫面四個角落一圈（左上→右上→右下→左下）' },
-  { key: 'flip',  icon: '🫳', title: '翻牌動作', hint: '伸食指指著任一處，再把食指彎下 — 這就是「翻牌」' },
+  { key: 'range', icon: '🖐', title: '移動範圍', hint: '別緊張～伸出食指，慢慢在鏡頭前往四個角落各停一下（左上→右上→右下→左下）' },
+  { key: 'peace', icon: '✌', title: '翻牌動作', hint: '比出 YA（食指 + 中指）— 這就是「翻牌」' },
   { key: 'open',  icon: '✋', title: '張開手',   hint: '五指完全張開讓鏡頭看見' },
-  { key: 'peace', icon: '✌', title: '比二',     hint: '比出 YA（食指 + 中指）' },
 ];
 function loadZone() {
   try {
@@ -700,15 +699,15 @@ function App() {
       return;
     }
 
-    if (g === GESTURE_FLIP && phase === PHASES.FLIP) {
-      // 食指彎下翻牌：優先用 HandTracker 傳來的「彎曲前位置」，避免指尖偏移
-      const pos = point ? pointToPos(point) : gestureHoverPos;
+    // 比二 = 翻牌（明確的手勢，不易誤觸）
+    if (g === GESTURE_PEACE && phase === PHASES.FLIP) {
+      const pos = lastPointedPosRef.current ?? gestureHoverPos;
       if (pos !== null && pos !== undefined) handleFlip(pos);
       return;
     }
 
-    // 比二 = 完整偷看最後指向的牌（動腦專屬，限 3 次）
-    if (g === GESTURE_PEACE && phase === PHASES.FLIP && mode === 'memory') {
+    // 彎食指 = 完整偷看最後指向的牌（動腦專屬，限 3 次）
+    if (g === GESTURE_FLIP && phase === PHASES.FLIP && mode === 'memory') {
       const pos = lastPointedPosRef.current;
       if (pos !== null && pos !== undefined) doPeek(pos);
       return;
@@ -795,8 +794,9 @@ function App() {
     if (rangeCountdown <= 0) {
       const acc = calibAccRef.current;
       if (acc && acc.maxX - acc.minX > 0.2 && acc.maxY - acc.minY > 0.15) {
-        const padX = (acc.maxX - acc.minX) * 0.05;
-        const padY = (acc.maxY - acc.minY) * 0.05;
+        // 內縮 -3%（往外擴）讓邊角更好抓，原本 +5% 內縮會讓邊緣難點到
+        const padX = (acc.maxX - acc.minX) * -0.03;
+        const padY = (acc.maxY - acc.minY) * -0.03;
         const zone = {
           x: [acc.minX + padX, acc.maxX - padX],
           y: [acc.minY + padY, acc.maxY - padY],
@@ -1013,6 +1013,7 @@ function App() {
       {/* ============== Phase 1 — 展牌記憶 ============== */}
       {phase === PHASES.MEMORIZE && game && (
         <div className="phase-screen phase-screen--full scene-fade">
+          <div className="memorize-hint">記住牌的位置！</div>
           <div className={`count-float ${countdown <= 3 ? 'count-float--warn' : ''}`}>
             {countdown}
           </div>
@@ -1104,14 +1105,14 @@ function App() {
                 />
               </div>
               <div className="camera-hint">
-                {currentGesture === GESTURE_NONE && '伸食指對準金框 → 彎食指翻牌'}
+                {currentGesture === GESTURE_NONE && '伸食指對準金框 → 比 YA 翻牌'}
                 {currentGesture === GESTURE_POINT && gestureHoverPos !== null && (
                   <>☝ ({Math.floor(gestureHoverPos / 6)},{gestureHoverPos % 6})</>
                 )}
                 {currentGesture === GESTURE_POINT && gestureHoverPos === null && '☝ 框外'}
-                {currentGesture === GESTURE_FLIP && '🫳 翻牌！'}
+                {currentGesture === GESTURE_PEACE && '✌ 翻牌！'}
                 {currentGesture === GESTURE_OPEN && '✋ 偷瞄'}
-                {currentGesture === GESTURE_PEACE && '✌ 偷看'}
+                {currentGesture === GESTURE_FLIP && '🫳 偷看'}
               </div>
 
               <div className="gesture-guide">
@@ -1120,9 +1121,9 @@ function App() {
                   <span className="gesture-guide__label">伸食指</span>
                   <span className="gesture-guide__action">移動</span>
                 </div>
-                <div className={`gesture-guide__item${currentGesture === GESTURE_FLIP ? ' is-active' : ''}`}>
-                  <span className="gesture-guide__icon">🫳</span>
-                  <span className="gesture-guide__label">彎食指</span>
+                <div className={`gesture-guide__item${currentGesture === GESTURE_PEACE ? ' is-active' : ''}`}>
+                  <span className="gesture-guide__icon">✌</span>
+                  <span className="gesture-guide__label">比 YA</span>
                   <span className="gesture-guide__action">翻牌</span>
                 </div>
                 <div className={`gesture-guide__item${currentGesture === GESTURE_OPEN ? ' is-active' : ''}`}>
@@ -1131,9 +1132,9 @@ function App() {
                   <span className="gesture-guide__action">模糊偷瞄</span>
                 </div>
                 {mode === 'memory' && (
-                  <div className={`gesture-guide__item${currentGesture === GESTURE_PEACE ? ' is-active' : ''}`}>
-                    <span className="gesture-guide__icon">✌</span>
-                    <span className="gesture-guide__label">比二</span>
+                  <div className={`gesture-guide__item${currentGesture === GESTURE_FLIP ? ' is-active' : ''}`}>
+                    <span className="gesture-guide__icon">🫳</span>
+                    <span className="gesture-guide__label">彎食指</span>
                     <span className="gesture-guide__action">完整偷看 ({peeksRemaining})</span>
                   </div>
                 )}
